@@ -1,0 +1,21 @@
+<!-- templates/login.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="login-container text-center asimovian-regular">
+    <img src="{{ url_for('static', filename='images/logo_1.png') }}" alt="Logo" class="logo mb-3">
+    <h2 class="red_color">DarkSignal</h2>
+    <form method="POST" action="{{ url_for('login') }}">
+        <div class="form-group">
+            <label for="username" class="white_color">Username</label>
+            <input type="text" name="username" id="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password" class="white_color">Password</label>
+            <input type="password" name="password" id="password" required>
+        </div>
+        <button type="submit">Login</button>
+    </form>
+    {% include 'partials/footer.html' %}
+</div>
+{% endblock %}
