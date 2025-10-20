@@ -1,21 +1,20 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
-from src.handlers.year_handler import current_year
+from flask import Flask, render_template, redirect, url_for
+from routes.auth_routes import auth_bp
+from routes.home_routes import home_bp
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY")
+app.register_blueprint(auth_bp)
+app.register_blueprint(home_bp)
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        # For now, just get the posted username and password
-        username = request.form['username']
-        password = request.form['password']
-        # Add authentication logic here
-        return f"Logged in as {username}"
-    return render_template('login.html', custom_css='css/styles_login.css', current_year=current_year())
 
-@app.route('/new-view', methods=['GET'])
-def test():
-    return render_template('home_page.html', custom_css='css/styles_main.css', current_year=current_year())
+@app.route("/")
+def index():
+    return redirect(url_for("auth.authenticate"))
 
 @app.errorhandler(404)
 def page_not_found(e):

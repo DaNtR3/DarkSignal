@@ -4,7 +4,7 @@
 <div class="login-container text-center">
     <img src="{{ url_for('static', filename='images/logo_1.png') }}" alt="Logo" class="logo mb-3">
     <h2 class="red_color">DarkSignal</h2>
-    <form method="POST" action="{{ url_for('login') }}">
+    <form method="POST" action="{{ url_for('auth.login') }}">
         <div class="form-group">
             <label for="username" class="white_color">Username</label>
             <input type="text" name="username" id="username" required>
