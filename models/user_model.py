@@ -2,13 +2,6 @@ from flask import jsonify
 from db_conn import get_db_connection
 
 
-def get_all_users():
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users")
-        rows = cursor.fetchall()
-        return rows
-
 def get_user_by_username(username):
     try:
         with get_db_connection() as conn:

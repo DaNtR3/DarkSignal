@@ -1,11 +1,45 @@
 @import url(../css/generals.css);
 
-.red_color {
+.nav_bar_style {
     color: rgb(255, 0, 0);
     font-size: 25px;
 }
 
 .white_color {
-    color: rgb(255, 255, 255);
-    font-size: 20px;
+    color: #c9d1d9;
+}
+
+.red_color{
+    color: rgb(255, 0, 0);
+}
+
+.footer_style {
+    color: #c9d1d9;
+}
+
+.custom_size{
+    font-size: 25px;
+}
+
+.custom_background{
+    border-radius: 15px;
+    background-color: #c9d1d9
+  
+}
+
+.attacks_logo_size{
+    width: auto;
+    height: 150px;
+}
+
+.custom_border{
+    border-radius: 15px;
+}
+
+.brighter_white_color{
+    color: white;
+}
+
+.font_bold{
+    font-weight: bold;
 }
