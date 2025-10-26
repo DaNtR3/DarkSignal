@@ -9,16 +9,18 @@
         {% for attack in attacks %}
         <div class="col-4 mt-5 mx-auto px-4">
             <div class="card custom_background">
-                 <div class="bg-dark custom_border">
-                        <img src="../static/images/{{attack.img_url}}"
-                            class="card-img-top attacks_logo_size mt-2 mb-2">
-                    </div>
+                <div class="bg-dark custom_border">
+                    <img src="../static/images/{{attack.img_url}}" class="card-img-top attacks_logo_size mt-2 mb-2">
+                </div>
                 <div class="card-body">
                     <h5 class="card-title font_bold">{{attack.name}}</h5>
                     <p class="card-text">{{attack.description}}</p>
-                    <div class="mx-5 px-5">
-                        <button> Execute attack!</button>
-                    </div>
+                    <form action="{{ url_for('attacks.renderAttack', attack_id=attack.id) }}" method="GET">
+                        <input type="hidden">
+                        <div class="mx-5 px-5">
+                            <button> Execute attack!</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

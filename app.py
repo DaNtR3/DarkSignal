@@ -1,6 +1,8 @@
 from flask import Flask, render_template, redirect, url_for
-from routes.auth_routes import auth_bp
-from routes.home_routes import home_bp
+from routes.ui.auth_routes import auth_bp
+from routes.ui.home_routes import home_bp
+from routes.attacks.haveibeenpwned_routes import pwned_bp
+from routes.attacks.attack_router import attack_bp
 from dotenv import load_dotenv
 import os
 
@@ -10,6 +12,8 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 app.register_blueprint(auth_bp)
 app.register_blueprint(home_bp)
+app.register_blueprint(pwned_bp)
+app.register_blueprint(attack_bp)
 
 
 @app.route("/")
