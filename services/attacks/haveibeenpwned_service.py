@@ -7,8 +7,6 @@ BASE_URL = "https://api.pwnedpasswords.com/range/"
 def HaveIbeenPwned(password):
     
     password_found = False
-    
-    print("The password lenght is: " + str(len(password)))
 
     hashed_password = hash_password(password)
 
@@ -26,7 +24,11 @@ def HaveIbeenPwned(password):
         if response_suffix == suffix:
             password_found = True
             break
-    return password_found
+        
+    if password_found == False:
+        response_count = 0
+ 
+    return password_found, response_count
 
 def Get_preffix(hashed_password):
     loop_count = 0

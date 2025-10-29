@@ -19,19 +19,20 @@ def check_password():
                     {
                         "source": "Attack Routes",
                         "success": False,
-                        "warning": "You should enter a value",
+                        "warning": "Password field cannot be empty",
                     }
                 ),
                 400,
             )
-        print("The password is: " + str(password))
-        if HaveIbeenPwned(password):
+        found, count = HaveIbeenPwned(password)
+        if found:
             return (
                 jsonify(
                     {
                         "source": "Attack Routes",
                         "success": True,
                         "warning": "You've been Pwned!!",
+                        "count": count
                     }
                 ),
                 200,
@@ -43,6 +44,7 @@ def check_password():
                         "source": "Attack Routes",
                         "success": True,
                         "message": "All clear!",
+                        "count": count
                     }
                 ),
                 200,

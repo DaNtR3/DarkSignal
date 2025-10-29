@@ -37,7 +37,7 @@ def login():
             if AuthService(username, password):
                 return redirect(url_for("home.homepage"))
             else:
-                return jsonify({"source":"Auth Routes" ,"success": False, "error": "Invalid credentials"}), 401
+                return jsonify({"source":"Auth Routes" ,"success": False, "message": "Invalid credentials"}), 401
         elif request.method == "GET":
             if not ActiveSession():
                 return render_template(

@@ -51,3 +51,40 @@ img{
     color: #c9d1d9;
     font-size: 15px;
 }
+
+.message_toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+.message_toast.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.header_login_toast{
+    color: rgb(255, 0, 0);
+    background: rgb(55, 55, 55);
+}
+.body_login_toast{
+    background: #c9d1d9;
+}
+
+.close_button_color {
+  filter: invert(100%);
+}
+
+.close_button_color:hover {
+  filter: none;
+  background-color: red;
+}
