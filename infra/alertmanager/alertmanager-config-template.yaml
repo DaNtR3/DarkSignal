@@ -1,0 +1,191 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-templates
+  namespace: alertmanager
+data:
+  custom_mail_subject.tmpl: |
+    {{ define "custom_mail_subject.tmpl" }}
+    {{- if gt (len .Alerts.Firing) 0 -}}
+    [{{ (index .Alerts.Firing 0).Labels.severity | toUpper }}] {{ (index .Alerts.Firing 0).Labels.alertname }} on {{ (index .Alerts.Firing 0).Labels.instance }}
+    {{- else if gt (len .Alerts.Resolved) 0 -}}
+    [RESOLVED] {{ (index .Alerts.Resolved 0).Labels.alertname }} on {{ (index .Alerts.Resolved 0).Labels.instance }}
+    {{- else -}}
+    [ALERT] Notification
+    {{- end -}}
+    {{ end }}
+
+  custom_mail_html.tmpl: |
+    {{ define "custom_mail_html.tmpl" }}
+    <html>
+      <head>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+          
+          body {
+            font-family: "Orbitron", "Asimovian", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+            background-color: #000000;
+            color: #c9d1d9;
+            padding: 20px;
+          }
+          .alert-box {
+            background: rgb(55, 55, 55);
+            border: 1px solid #ff0000;
+            border-left: 6px solid #ff0000;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(255, 0, 0, 0.3);
+          }
+          .alert-box.resolved {
+            border-color: #27ae60;
+            border-left-color: #27ae60;
+            box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+          }
+          h1 {
+            color: #ff0000;
+            font-weight: 700;
+          }
+          h1.resolved {
+            color: #27ae60;
+          }
+          h2 {
+            color: #ff0000;
+            margin-top: 0;
+            font-weight: 700;
+          }
+          h2.resolved {
+            color: #27ae60;
+          }
+          .labels, .annotations {
+            margin: 10px 0;
+          }
+          .labels span, .annotations span {
+            display: block;
+            margin: 3px 0;
+            color: #c9d1d9;
+          }
+          .severity-critical {
+            color: #000000;
+            background: #ff0000;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            display: inline-block;
+          }
+          .severity-warning {
+            color: #000000;
+            background: #f39c12;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            display: inline-block;
+          }
+          .severity-info {
+            color: #000000;
+            background: #3498db;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            display: inline-block;
+          }
+          .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 10px;
+          }
+          .status.firing {
+            background: #ff0000;
+            color: #000000;
+          }
+          .status.resolved {
+            background: #27ae60;
+            color: #000000;
+          }
+          .gif-box {
+            margin-top: 15px;
+            text-align: center;
+          }
+          .gif-box img {
+            max-width: 200px;
+          }
+          .timestamp {
+            color: #c9d1d9;
+            font-size: 0.9em;
+            margin-top: 10px;
+            opacity: 0.8;
+          }
+        </style>
+      </head>
+      <body>
+        <div style="text-align: center; margin-bottom: 30px; padding: 20px; background: rgb(55, 55, 55); border: 2px solid #ff0000; box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);">
+          <h1 style="font-size: 3em; margin: 0; color: #ff0000; text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000; letter-spacing: 4px;">
+            ⚡ DARKSIGNAL ⚡
+          </h1>
+          <p style="margin: 10px 0 0 0; color: #c9d1d9; font-size: 1.1em; letter-spacing: 2px;">ALERT MONITORING SYSTEM</p>
+        </div>
+        
+        {{- if gt (len .Alerts.Firing) 0 }}
+        <h1 style="color: #ff0000;">🚨 Firing Alerts ({{ len .Alerts.Firing }})</h1>
+        {{- range .Alerts.Firing }}
+        <div class="alert-box">
+          <span class="status firing">FIRING</span>
+          <h2>🚨 Alert: {{ .Labels.alertname }}</h2>
+          <div class="labels">
+            <span><strong>Instance:</strong> {{ .Labels.instance }}</span>
+            <span><strong>Job:</strong> {{ .Labels.job }}</span>
+            <span><strong>Severity:</strong> <span class="severity-{{ .Labels.severity }}">{{ .Labels.severity | toUpper }}</span></span>
+          </div>
+          <div class="annotations">
+            {{- if .Annotations.summary }}
+            <span><strong>Summary:</strong> {{ .Annotations.summary }}</span>
+            {{- end }}
+            {{- if .Annotations.description }}
+            <span><strong>Description:</strong> {{ .Annotations.description }}</span>
+            {{- end }}
+          </div>
+          <div class="timestamp">
+            <span><strong>Started:</strong> {{ .StartsAt.Format "2006-01-02 15:04:05 MST" }}</span>
+          </div>
+          <div class="gif-box">
+            <img src="https://media.giphy.com/media/S0zHxjax3DbJm/giphy.gif" alt="Panic Alert">
+          </div>
+        </div>
+        {{- end }}
+        {{- end }}
+
+        {{- if gt (len .Alerts.Resolved) 0 }}
+        <h1 style="color: #27ae60;">✅ Resolved Alerts ({{ len .Alerts.Resolved }})</h1>
+        {{- range .Alerts.Resolved }}
+        <div class="alert-box resolved">
+          <span class="status resolved">RESOLVED</span>
+          <h2 class="resolved">✅ Alert: {{ .Labels.alertname }}</h2>
+          <div class="labels">
+            <span><strong>Instance:</strong> {{ .Labels.instance }}</span>
+            <span><strong>Job:</strong> {{ .Labels.job }}</span>
+            <span><strong>Severity:</strong> <span class="severity-{{ .Labels.severity }}">{{ .Labels.severity | toUpper }}</span></span>
+          </div>
+          <div class="annotations">
+            {{- if .Annotations.summary }}
+            <span><strong>Summary:</strong> {{ .Annotations.summary }}</span>
+            {{- end }}
+            {{- if .Annotations.description }}
+            <span><strong>Description:</strong> {{ .Annotations.description }}</span>
+            {{- end }}
+          </div>
+          <div class="timestamp">
+            <span><strong>Started:</strong> {{ .StartsAt.Format "2006-01-02 15:04:05 MST" }}</span><br>
+            <span><strong>Resolved:</strong> {{ .EndsAt.Format "2006-01-02 15:04:05 MST" }}</span>
+          </div>
+          <div class="gif-box">
+            <img src="https://media.giphy.com/media/c2lbMLWfL1mQ8/giphy.gif" alt="Calm Resolved">
+          </div>
+        </div>
+        {{- end }}
+        {{- end }}
+      </body>
+    </html>
+    {{ end }}

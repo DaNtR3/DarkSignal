@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scripts-config
+  namespace: metrics-script
+data:
+  API_URL: "http://darksignal-server.darksignal.svc.cluster.local:5080/pwned/check-password"
+  INTERVAL: "3"
+  WEAK_RATIO: "0.6"

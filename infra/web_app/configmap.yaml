@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: darksignal-server-config
+  namespace: darksignal
+data:
+  OTEL_SERVICE_NAME: darksignal-server
+  OTEL_METRICS_EXPORTER: prometheus

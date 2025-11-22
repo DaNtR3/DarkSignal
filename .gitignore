@@ -3,6 +3,12 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Unused folder
+docker
+
+# Secret .yamls
+*secret.yaml
+
 # C extensions
 *.so
 

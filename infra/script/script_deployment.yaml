@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: script-darksignal
+  namespace: metrics-script
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: script-darksignal
+  template:
+    metadata:
+      labels:
+        app: script-darksignal
+    spec:
+      containers:
+        - name: script-darksignal
+          image: dantr3/sre-scripts:latest
+          envFrom:
+            - configMapRef:
+                name: scripts-config

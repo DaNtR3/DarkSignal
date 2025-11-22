@@ -1,0 +1,82 @@
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: alertmanager-config
+    namespace: alertmanager
+    labels:
+      app: alertmanager
+  data:
+    alertmanager.yaml: |
+      global:
+        resolve_timeout: 5m
+        smtp_require_tls: true
+
+      route:
+        receiver: 'default'
+        group_wait: 10s
+        group_interval: 10s
+        repeat_interval: 1h
+
+      templates:
+      - '/etc/alertmanager/templates/*.tmpl'
+
+      receivers:
+        - name: 'default'
+          email_configs:
+            - to: 'daniel.sibaja1@ibm.com'
+              from: 'daniel.sibaja.ch03@gmail.com'
+              smarthost: 'smtp.gmail.com:587'
+              auth_username: 'daniel.sibaja.ch03@gmail.com'
+              auth_password_file: '/etc/alertmanager/secrets/AUTH_PASSWORD'
+              send_resolved: true
+              html: '{{ template "custom_mail_html.tmpl" . }}'
+              headers:
+                subject: '{{ template "custom_mail_subject.tmpl" . }}'
+          slack_configs:
+          - send_resolved: true
+            api_url_file: /etc/alertmanager/secrets/SLACK_API_URL
+            channel: '#sre-project-alert'
+            username: 'DarkSignal Alert System'
+            icon_emoji: ':zap:'
+            
+            title: |-
+              {{ if eq .Status "firing" }}⚡ DARKSIGNAL - FIRING ALERT ⚡{{ else }}✅ DARKSIGNAL - RESOLVED ✅{{ end }}
+            
+            title_link: '{{ (index .Alerts 0).GeneratorURL }}'
+            
+            color: |-
+              {{ if eq .Status "firing" }}danger{{ else }}good{{ end }}
+            
+            text: |-
+              {{ if eq .Status "firing" }}
+              🚨 *ALERT MONITORING SYSTEM - {{ len .Alerts }} Alert(s) Detected* 🚨
+              {{ else }}
+              ✨ *ALERT MONITORING SYSTEM - {{ len .Alerts }} Alert(s) Resolved* ✨
+              {{ end }}
+
+            fields:
+              - title: "Alert Details"
+                value: |-
+                  {{ range .Alerts }}
+                  ---
+                  {{ if eq .Status "firing" }}🔥 *FIRING*{{ else }}✅ *RESOLVED*{{ end }}
+                  
+                  *Alert Name:* `{{ .Labels.alertname }}`
+                  *Severity:* `{{ .Labels.severity | toUpper }}`
+                  {{ if eq .Labels.severity "critical" }}🔴{{ else if eq .Labels.severity "warning" }}🟡{{ else }}🔵{{ end }}
+                  
+                  *Instance:* `{{ .Labels.instance }}`
+                  *Job:* `{{ .Labels.job }}`
+                  
+                  {{ if .Annotations.summary }}*Summary:* {{ .Annotations.summary }}{{ end }}
+                  {{ if .Annotations.description }}*Description:* {{ .Annotations.description }}{{ end }}
+                  
+                  *Started:* <!date^{{ .StartsAt.Unix }}^{date_short_pretty} {time}|{{ .StartsAt }}>
+                  {{ if eq .Status "resolved" }}*Resolved:* <!date^{{ .EndsAt.Unix }}^{date_short_pretty} {time}|{{ .EndsAt }}>{{ end }}
+                  
+                  <{{ .GeneratorURL }}|🔗 View in Prometheus>
+                  {{ end }}
+                short: false
+            
+            footer: |-
+              ⚡ DarkSignal Monitoring | {{ if eq .Status "firing" }}Stay Alert{{ else }}All Clear{{ end }}

@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: darksignal-server
+  namespace: darksignal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: darksignal-server
+  template:
+    metadata:
+      labels:
+        app: darksignal-server
+    spec:
+      containers:
+        - name: darksignal-server
+          image: dantr3/sre-project
+          ports:
+            - containerPort: 5080
+          envFrom:
+            - configMapRef:
+                name: darksignal-server-config
+          readinessProbe:
+            httpGet:
+              path: /home
+              port: 5080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /home
+              port: 5080
+            initialDelaySeconds: 15
+            periodSeconds: 20
