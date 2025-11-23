@@ -1,18 +1,90 @@
-name: GitHub Actions Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
-on: [push]
+name: SRE Project - Build and Deploy to Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+env:
+  REGISTRY: docker.io
+  WEB_APP_IMAGE_NAME: dantr3/sre-project
+  SCRIPT_IMAGE_NAME: dantr3/sre-scripts
+
 jobs:
-  Explore-GitHub-Actions:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      packages: write
+
     steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v5
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
-      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
-      - name: List files in the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Web App Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./dockerfile
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.WEB_APP_IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.WEB_APP_IMAGE_NAME }}:${{ github.sha::8 }}
+
+      - name: Build Script Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./scripts
+          file: ./scripts/dockerfile 
+          push: ${{ github.event_name == 'push' }}
+          tags: | 
+            ${{ env.REGISTRY }}/${{ env.SCRIPT_IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.SCRIPT_IMAGE_NAME }}:${{ github.sha::8 }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+      
+      #THIS IS WHERE YOU CONNECT TO YOUR CLUSTER (AZURE, AWS, GCP... ETC)
+      #- name: Configure kubeconfig
+      #  run: |
+      #    mkdir -p $HOME/.kube
+      #    echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
+      #   chmod 600 $HOME/.kube/config
+
+      - name: Apply Kubernetes manifests
         run: |
-          ls ${{ github.workspace }}
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+          # Create namespaces first
+          kubectl apply -f infra/namespaces/
+          
+          # Apply all configurations and deployments
+          kubectl apply -f infra/alertmanager/
+          kubectl apply -f infra/prometheus/
+          kubectl apply -f infra/grafana/
+          kubectl apply -f infra/web_app/
+          kubectl apply -f infra/script/
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status darksignal-server -n darksignal --timeout=5m
+
+      - name: Post deployment info
+        if: success()
+        run: |
+          echo "✅ Deployment successful!"
+          kubectl get pods -A
+          kubectl get services -A
