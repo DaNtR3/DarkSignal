@@ -98,6 +98,9 @@ jobs:
           REGION=$(terraform output -raw region)
           CLUSTER_NAME=$(terraform output -raw cluster_name)
 
+          echo "REGION: $REGION"
+          echo "CLUSTER_NAME: $CLUSTER_NAME"
+
           # Configure kubectl for the EKS cluster
           aws eks update-kubeconfig --region $REGION --name $CLUSTER_NAME
 
