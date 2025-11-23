@@ -69,17 +69,28 @@ jobs:
       #    echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
       #   chmod 600 $HOME/.kube/config
 
-      - name: Apply Kubernetes manifests
+
+      #THIS WILL BE SKIPPED FOR NOW BECAUSE WE DON'T HAVE A CLUSTER TO TALK TO
+      #- name: Apply Kubernetes manifests
+      #  run: |
+      #    # Create namespaces first
+      #    kubectl apply -f infra/namespaces/
+      #    
+      #    # Apply all configurations and deployments
+      #    kubectl apply -f infra/alertmanager/
+      #    kubectl apply -f infra/prometheus/
+      #   kubectl apply -f infra/grafana/
+      #    kubectl apply -f infra/web_app/
+      #   kubectl apply -f infra/script/
+
+      - name: Validate Kubernetes manifests
         run: |
-          # Create namespaces first
-          kubectl apply -f infra/namespaces/
-          
-          # Apply all configurations and deployments
-          kubectl apply -f infra/alertmanager/
-          kubectl apply -f infra/prometheus/
-          kubectl apply -f infra/grafana/
-          kubectl apply -f infra/web_app/
-          kubectl apply -f infra/script/
+          kubectl apply --dry-run=client -f infra/namespaces/
+          kubectl apply --dry-run=client -f infra/alertmanager/
+          kubectl apply --dry-run=client -f infra/prometheus/
+          kubectl apply --dry-run=client -f infra/grafana/
+          kubectl apply --dry-run=client -f infra/web_app/
+          kubectl apply --dry-run=client -f infra/script/
 
       - name: Verify deployment
         run: |
