@@ -71,10 +71,13 @@ jobs:
 
       - name: Terraform Init
         working-directory: ./terraform/eks
-        run: terraform init -backend-config="bucket=sre-project-s3-dantr3-bucket" \
-                             -backend-config="key=sre-project/eks/terraform.tfstate" \
-                             -backend-config="region=us-east-1" \
-                             -backend-config="dynamodb_table=terraform-locks"
+        run: |
+          terraform init \
+            -backend-config="bucket=sre-project-s3-dantr3-bucket" \
+            -backend-config="key=sre-project/eks/terraform.tfstate" \
+            -backend-config="region=us-east-1" \
+            -backend-config="dynamodb_table=terraform-locks"
+
 
       - name: Terraform Plan
         working-directory: ./terraform/eks
@@ -86,11 +89,12 @@ jobs:
 
       # Terraform Destroy on failure
       - name: Terraform Destroy on Failure
-        if: ${{ failure() }}   # Runs only if any previous step fails
+        if: ${{ failure() }}
         working-directory: ./terraform/eks
-        run: terraform destroy -auto-approve \
-              -var="aws_region=us-east-1" \
-              -var="cluster_name=sre-project-cluster"
+        run: |
+          terraform destroy -auto-approve \
+            -var="aws_region=us-east-1" \
+            -var="cluster_name=sre-project-cluster"
 
       - name: Configure kubeconfig for EKS
         run: |
