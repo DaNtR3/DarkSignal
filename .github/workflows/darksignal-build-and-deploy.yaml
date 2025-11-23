@@ -89,10 +89,12 @@ jobs:
       - name: Configure kubeconfig for EKS
         working-directory: ./terraform/eks
         run: |
-          # Directly run the AWS CLI command using Terraform output
-          aws eks update-kubeconfig \
-            --region $(terraform output -raw region) \
-            --name $(terraform output -raw cluster_name)
+          # Get Terraform outputs into variables
+          REGION=$(terraform output -raw region)
+          CLUSTER_NAME=$(terraform output -raw cluster_name)
+
+          # Configure kubectl for the EKS cluster
+          aws eks update-kubeconfig --region $REGION --name $CLUSTER_NAME
 
           # Verify cluster connection
           kubectl get nodes
