@@ -86,6 +86,20 @@ jobs:
         working-directory: ./terraform/eks
         run: terraform apply -auto-approve tfplan
 
+      - name: Debug Terraform State
+        working-directory: ./terraform/eks
+        run: |
+          TERRAFORM_BIN=$(which terraform)
+          
+          echo "=== Checking Terraform state ==="
+          $TERRAFORM_BIN show
+          
+          echo "=== Current outputs ==="
+          $TERRAFORM_BIN output
+          
+          echo "=== Output as JSON ==="
+          $TERRAFORM_BIN output -json
+
       - name: Configure kubeconfig for EKS
         working-directory: ./terraform/eks
         run: |
