@@ -86,29 +86,20 @@ jobs:
         working-directory: ./terraform/eks
         run: terraform apply -auto-approve tfplan
 
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
       - name: Configure kubeconfig for EKS
         working-directory: ./terraform/eks
         run: |
-          TERRAFORM_BIN=$(which terraform)
+          # Get Terraform outputs into variables
+          REGION=$(terraform output -raw region)
+          CLUSTER_NAME=$(terraform output -raw cluster_name)
 
-          # Save output to file to avoid variable expansion issues
-          $TERRAFORM_BIN output -json > /tmp/tf-output.json 2>&1
-          
-          # Clean the file - keep only valid JSON
-          grep -E '^\{' /tmp/tf-output.json > /tmp/tf-clean.json
-          
-          echo "=== Clean JSON ==="
-          cat /tmp/tf-clean.json
-          echo "================="
-          
-          REGION=$(jq -r '.region.value' /tmp/tf-clean.json)
-          CLUSTER_NAME=$(jq -r '.cluster_name.value' /tmp/tf-clean.json)
-
-          echo "Region: $REGION"
-          echo "Cluster: $CLUSTER_NAME"
-
-          # Configure kubectl
-          aws eks update-kubeconfig --region "$REGION" --name "$CLUSTER_NAME"
+          # Configure kubectl for the EKS cluster
+          aws eks update-kubeconfig --region $REGION --name $CLUSTER_NAME
 
           # Verify cluster connection
           kubectl get nodes
