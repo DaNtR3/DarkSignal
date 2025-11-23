@@ -1,4 +1,4 @@
-name: SRE Project Build and Deploy to Kubernetes
+name: SRE Project - Build and Deploy to Kubernetes
 
 on:
   push:
@@ -42,7 +42,7 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.WEB_APP_IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.WEB_APP_IMAGE_NAME }}:${{ github.sha::8 }}
+            ${{ env.REGISTRY }}/${{ env.WEB_APP_IMAGE_NAME }}:${{ github.sha.substr(0, 8) }}
 
       - name: Build Script Image
         uses: docker/build-push-action@v5
@@ -52,7 +52,7 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: | 
             ${{ env.REGISTRY }}/${{ env.SCRIPT_IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.SCRIPT_IMAGE_NAME }}:${{ github.sha::8 }}
+            ${{ env.REGISTRY }}/${{ env.SCRIPT_IMAGE_NAME }}:${{ github.sha.substr(0, 8) }}
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
