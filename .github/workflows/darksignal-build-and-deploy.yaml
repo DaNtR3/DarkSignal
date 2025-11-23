@@ -84,6 +84,13 @@ jobs:
         working-directory: ./terraform/eks
         run: terraform apply -auto-approve tfplan
 
+      # Terraform Destroy on failure
+      - name: Terraform Destroy on Failure
+        if: ${{ failure() }}   # Runs only if any previous step fails
+        working-directory: ./terraform/eks
+        run: terraform destroy -auto-approve \
+              -var="aws_region=us-east-1" \
+              -var="cluster_name=sre-project-cluster"
 
       - name: Configure kubeconfig for EKS
         run: |
