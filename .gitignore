@@ -1,3 +1,23 @@
+# Local .terraform directories
+.terraform/
+
+# State files
+*.tfstate
+*.tfstate.backup
+
+# Crash logs
+crash.log
+
+# Override files (optional)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CLI config files
+.terraformrc
+terraform.rc
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

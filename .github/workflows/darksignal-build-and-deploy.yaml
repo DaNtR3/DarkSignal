@@ -57,53 +57,59 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.SCRIPT_IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.SCRIPT_IMAGE_NAME }}:${{ env.SHORT_SHA }}
 
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
         with:
-          version: 'v1.28.0'
-      
-      #THIS IS WHERE YOU CONNECT TO YOUR CLUSTER (AZURE, AWS, GCP... ETC)
-      #- name: Configure kubeconfig
-      #  run: |
-      #    mkdir -p $HOME/.kube
-      #    echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
-      #   chmod 600 $HOME/.kube/config
+          terraform_version: 1.14.0  
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform Init
+        working-directory: ./terraform/eks
+        run: terraform init -backend-config="bucket=sre-project-s3-dantr3-bucket" \
+                             -backend-config="key=sre-project/eks/terraform.tfstate" \
+                             -backend-config="region=us-east-1" \
+                             -backend-config="dynamodb_table=terraform-locks"
+
+      - name: Terraform Plan
+        working-directory: ./terraform/eks
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        working-directory: ./terraform/eks
+        run: terraform apply -auto-approve tfplan
 
 
-      #THIS WILL BE SKIPPED FOR NOW BECAUSE WE DON'T HAVE A CLUSTER TO TALK TO
-      #- name: Apply Kubernetes manifests
-      #  run: |
-      #    # Create namespaces first
-      #    kubectl apply -f infra/namespaces/
-      #    
-      #    # Apply all configurations and deployments
-      #    kubectl apply -f infra/alertmanager/
-      #    kubectl apply -f infra/prometheus/
-      #   kubectl apply -f infra/grafana/
-      #    kubectl apply -f infra/web_app/
-      #   kubectl apply -f infra/script/
-
-      - name: Create empty kubeconfig for validation
+      - name: Configure kubeconfig for EKS
         run: |
-          mkdir -p ~/.kube
-          echo "{}" > ~/.kube/config
+          # Get the full kubectl configuration command from Terraform output
+          KUBECONFIG_CMD=$(terraform output -raw configure_kubectl_command)
+          
+          # Execute the command to configure kubeconfig
+          $KUBECONFIG_CMD
+          
+          # Verify cluster connection
+          kubectl get nodes
 
-      - name: Validate Kubernetes manifests
+      - name: Apply Kubernetes manifests
         run: |
-          kubectl apply --dry-run=client --validate=false -f infra/namespaces/
-          kubectl apply --dry-run=client --validate=false -f infra/alertmanager/
-          kubectl apply --dry-run=client --validate=false -f infra/prometheus/
-          kubectl apply --dry-run=client --validate=false -f infra/grafana/
-          kubectl apply --dry-run=client --validate=false -f infra/web_app/
-          kubectl apply --dry-run=client --validate=false -f infra/script/
+          kubectl apply -f infra/namespaces/
+          kubectl apply -f infra/alertmanager/
+          kubectl apply -f infra/prometheus/
+          kubectl apply -f infra/grafana/
+          kubectl apply -f infra/web_app/
+          kubectl apply -f infra/script/
 
-      #THIS WILL BE SKIPPED BECAUSE WE DON'T HAVE A REAL CLUSTER YET
-      #- name: Verify deployment
-      #  run: |
-      #    kubectl rollout status darksignal-server -n darksignal --timeout=5m
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/darksignal-server -n darksignal --timeout=5m
 
       - name: Post deployment info
-        if: success()
         run: |
           echo "✅ Deployment successful!"
           kubectl get pods -A
