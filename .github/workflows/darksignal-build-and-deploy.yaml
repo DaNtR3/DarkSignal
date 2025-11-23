@@ -89,15 +89,21 @@ jobs:
       - name: Configure kubeconfig for EKS
         working-directory: ./terraform/eks
         run: |
-          # Get Terraform outputs into variables
-          REGION=$(terraform output -raw region)
-          CLUSTER_NAME=$(terraform output -raw cluster_name)
+          # Use the installed Terraform CLI explicitly
+          TERRAFORM_BIN=$(which terraform)
 
-          # Configure kubectl for the EKS cluster
+          # Capture outputs
+          REGION=$($TERRAFORM_BIN output -raw region)
+          CLUSTER_NAME=$($TERRAFORM_BIN output -raw cluster_name)
+
+          echo "Region: $REGION, Cluster: $CLUSTER_NAME"
+
+          # Configure kubectl
           aws eks update-kubeconfig --region $REGION --name $CLUSTER_NAME
 
           # Verify cluster connection
           kubectl get nodes
+
 
       - name: Apply Kubernetes manifests
         run: |
