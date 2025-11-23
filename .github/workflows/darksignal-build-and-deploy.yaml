@@ -94,14 +94,18 @@ jobs:
       - name: Configure kubeconfig for EKS
         working-directory: ./terraform/eks
         run: |
-          # Get Terraform outputs into variables
-          REGION=$(terraform output -raw region)
-          CLUSTER_NAME=$(terraform output -raw cluster_name)
+          # Capture Terraform outputs as JSON
+          terraform output -json > tf-output.json
 
-          echo "REGION: $REGION"
-          echo "CLUSTER_NAME: $CLUSTER_NAME"
+          cat tf-output.json
 
-          # Configure kubectl for the EKS cluster
+          # Parse JSON for region and cluster name
+          REGION=$(jq -r '.region.value' tf-output.json)
+          CLUSTER_NAME=$(jq -r '.cluster_name.value' tf-output.json)
+
+          echo "Region: $REGION, Cluster: $CLUSTER_NAME"
+
+          # Configure kubectl
           aws eks update-kubeconfig --region $REGION --name $CLUSTER_NAME
 
           # Verify cluster connection
