@@ -1,4 +1,4 @@
-name: SRE Project - Build and Deploy to Kubernetes
+name: SRE Project Build and Deploy to Kubernetes
 
 on:
   push:
