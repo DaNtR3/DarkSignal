@@ -92,6 +92,13 @@ jobs:
         with:
           version: 'v1.28.0'
 
+      - name: Show Terraform Outputs
+        working-directory: ./terraform/eks
+        run: |
+          echo "==== Terraform Outputs ===="
+          terraform output -json
+          echo "=========================="
+
       - name: Capture Terraform Outputs
         run: |
           REGION=$(terraform output -raw region)
