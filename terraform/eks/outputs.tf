@@ -1,6 +1,11 @@
 # Outputs
 
-output "configure_kubectl_command" {
-  description = "Command to configure kubectl"
-  value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${var.cluster_name}"
+output "cluster_name" {
+  description = "EKS cluster name"
+  value       = aws_eks_cluster.main.name
+}
+
+output "region" {
+  description = "AWS region"
+  value       = var.aws_region
 }

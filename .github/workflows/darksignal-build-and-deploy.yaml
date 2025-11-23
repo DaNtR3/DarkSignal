@@ -78,7 +78,6 @@ jobs:
             -backend-config="region=us-east-1" \
             -backend-config="dynamodb_table=terraform-locks"
 
-
       - name: Terraform Plan
         working-directory: ./terraform/eks
         run: terraform plan -out=tfplan
@@ -87,23 +86,14 @@ jobs:
         working-directory: ./terraform/eks
         run: terraform apply -auto-approve tfplan
 
-      # Terraform Destroy on failure
-      - name: Terraform Destroy on Failure
-        if: ${{ failure() }}
+      - name: Configure kubeconfig for EKS
         working-directory: ./terraform/eks
         run: |
-          terraform destroy -auto-approve \
-            -var="aws_region=us-east-1" \
-            -var="cluster_name=sre-project-cluster"
+          # Directly run the AWS CLI command using Terraform output
+          aws eks update-kubeconfig \
+            --region $(terraform output -raw region) \
+            --name $(terraform output -raw cluster_name)
 
-      - name: Configure kubeconfig for EKS
-        run: |
-          # Get the full kubectl configuration command from Terraform output
-          KUBECONFIG_CMD=$(terraform output -raw configure_kubectl_command)
-          
-          # Execute the command to configure kubeconfig
-          $KUBECONFIG_CMD
-          
           # Verify cluster connection
           kubectl get nodes
 
