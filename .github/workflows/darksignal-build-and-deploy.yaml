@@ -94,9 +94,12 @@ jobs:
       - name: Configure kubeconfig for EKS
         working-directory: ./terraform/eks
         run: |
-          # Capture Terraform outputs as JSON
-          terraform output -json > tf-output.json
+          TERRAFORM_BIN=$(which terraform)
 
+          # Capture Terraform outputs as JSON using the correct binary
+          $TERRAFORM_BIN output -json > tf-output.json
+
+          # Show the JSON (optional)
           cat tf-output.json
 
           # Parse JSON for region and cluster name
@@ -106,10 +109,11 @@ jobs:
           echo "Region: $REGION, Cluster: $CLUSTER_NAME"
 
           # Configure kubectl
-          aws eks update-kubeconfig --region $REGION --name $CLUSTER_NAME
+          aws eks update-kubeconfig --region "$REGION" --name "$CLUSTER_NAME"
 
           # Verify cluster connection
           kubectl get nodes
+
 
       - name: Apply Kubernetes manifests
         run: |
