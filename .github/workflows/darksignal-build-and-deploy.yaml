@@ -34,15 +34,18 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::8}" >> $GITHUB_ENV
+
       - name: Build Web App Image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./dockerfile
           push: ${{ github.event_name == 'push' }}
-          tags: |
+          tags: | 
             ${{ env.REGISTRY }}/${{ env.WEB_APP_IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.WEB_APP_IMAGE_NAME }}:${{ github.sha.substr(0, 8) }}
+            ${{ env.REGISTRY }}/${{ env.WEB_APP_IMAGE_NAME }}:${{ env.SHORT_SHA }}
 
       - name: Build Script Image
         uses: docker/build-push-action@v5
@@ -52,7 +55,7 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: | 
             ${{ env.REGISTRY }}/${{ env.SCRIPT_IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.SCRIPT_IMAGE_NAME }}:${{ github.sha.substr(0, 8) }}
+            ${{ env.REGISTRY }}/${{ env.SCRIPT_IMAGE_NAME }}:${{ env.SHORT_SHA }}
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
