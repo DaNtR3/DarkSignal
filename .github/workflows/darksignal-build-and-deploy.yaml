@@ -94,12 +94,15 @@ jobs:
       - name: Configure kubeconfig for EKS
         working-directory: ./terraform/eks
         run: |
-          # Use the installed Terraform binary explicitly
-          TERRAFORM_BIN=$(which terraform)
+          # Capture Terraform outputs as JSON directly
+          terraform output -json > tf-output.json
 
-          # Capture outputs safely using subprocess and clean stdout
-          REGION=$($TERRAFORM_BIN output -json | jq -r '.region.value')
-          CLUSTER_NAME=$($TERRAFORM_BIN output -json | jq -r '.cluster_name.value')
+          # Debug: check contents
+          cat tf-output.json
+
+          # Parse JSON for region and cluster name safely
+          REGION=$(jq -r '.region.value' tf-output.json)
+          CLUSTER_NAME=$(jq -r '.cluster_name.value' tf-output.json)
 
           echo "Region: $REGION, Cluster: $CLUSTER_NAME"
 
