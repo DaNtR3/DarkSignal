@@ -61,6 +61,7 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.14.0  
+          terraform_wrapper: false
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -91,25 +92,16 @@ jobs:
         with:
           version: 'v1.28.0'
 
-      - name: Configure kubeconfig for EKS
-        working-directory: ./terraform/eks
+      - name: Capture Terraform Outputs
         run: |
-          # Capture Terraform outputs as JSON directly
-          terraform output -json > tf-output.json
+          REGION=$(terraform output -raw region)
+          CLUSTER_NAME=$(terraform output -raw cluster_name)
+          echo "REGION=$REGION" >> $GITHUB_ENV
+          echo "CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
 
-          # Debug: check contents
-          cat tf-output.json
-
-          # Parse JSON for region and cluster name safely
-          REGION=$(jq -r '.region.value' tf-output.json)
-          CLUSTER_NAME=$(jq -r '.cluster_name.value' tf-output.json)
-
-          echo "Region: $REGION, Cluster: $CLUSTER_NAME"
-
-          # Configure kubectl
-          aws eks update-kubeconfig --region "$REGION" --name "$CLUSTER_NAME"
-
-          # Verify cluster connection
+      - name: Configure kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig --region $REGION --name $CLUSTER_NAME
           kubectl get nodes
 
       - name: Apply Kubernetes manifests
