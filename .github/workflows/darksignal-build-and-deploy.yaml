@@ -91,10 +91,18 @@ jobs:
         run: |
           TERRAFORM_BIN=$(which terraform)
 
-          # Get outputs as JSON and parse with jq
-          OUTPUTS=$($TERRAFORM_BIN output -json)
-          REGION=$(echo "$OUTPUTS" | jq -r '.region.value')
-          CLUSTER_NAME=$(echo "$OUTPUTS" | jq -r '.cluster_name.value')
+          # Save output to file to avoid variable expansion issues
+          $TERRAFORM_BIN output -json > /tmp/tf-output.json 2>&1
+          
+          # Clean the file - keep only valid JSON
+          grep -E '^\{' /tmp/tf-output.json > /tmp/tf-clean.json
+          
+          echo "=== Clean JSON ==="
+          cat /tmp/tf-clean.json
+          echo "================="
+          
+          REGION=$(jq -r '.region.value' /tmp/tf-clean.json)
+          CLUSTER_NAME=$(jq -r '.cluster_name.value' /tmp/tf-clean.json)
 
           echo "Region: $REGION"
           echo "Cluster: $CLUSTER_NAME"
