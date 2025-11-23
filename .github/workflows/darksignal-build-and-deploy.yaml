@@ -96,7 +96,7 @@ jobs:
         working-directory: ./terraform/eks
         run: |
           echo "==== Terraform Outputs ===="
-          terraform output -json
+          terraform output
           echo "=========================="
 
       - name: Capture Terraform Outputs
