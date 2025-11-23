@@ -92,14 +92,15 @@ jobs:
           # Use the installed Terraform CLI explicitly
           TERRAFORM_BIN=$(which terraform)
 
-          # Capture outputs
-          REGION=$($TERRAFORM_BIN output -raw region)
-          CLUSTER_NAME=$($TERRAFORM_BIN output -raw cluster_name)
+          # Capture outputs (suppress debug output)
+          REGION=$($TERRAFORM_BIN output -raw region 2>/dev/null | tail -1)
+          CLUSTER_NAME=$($TERRAFORM_BIN output -raw cluster_name 2>/dev/null | tail -1)
 
-          echo "Region: $REGION, Cluster: $CLUSTER_NAME"
+          echo "Region: $REGION"
+          echo "Cluster: $CLUSTER_NAME"
 
           # Configure kubectl
-          aws eks update-kubeconfig --region $REGION --name $CLUSTER_NAME
+          aws eks update-kubeconfig --region "$REGION" --name "$CLUSTER_NAME"
 
           # Verify cluster connection
           kubectl get nodes
