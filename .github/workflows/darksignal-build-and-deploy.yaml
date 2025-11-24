@@ -139,8 +139,8 @@ jobs:
             namespace: alertmanager
           type: Opaque
           stringData:
-            AUTH_PASSWORD: "${{ secrets.ALERT_EMAIL_PASSWORD }}"
-            SLACK_API_URL: "${{ secrets.ALERT_SLACK_WEBHOOK }}"
+            AUTH_PASSWORD: "${{ secrets.EMAIL_PASSWORD }}"
+            SLACK_API_URL: "${{ secrets.SLACK_WEBHOOK }}"
           EOF
 
       - name: Verify deployment
