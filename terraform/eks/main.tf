@@ -116,6 +116,16 @@ resource "aws_iam_role" "node_group" {
   })
 }
 
+# Allow inbound NodePort traffic to expose container services
+resource "aws_security_group_rule" "nodeport_range" {
+  type              = "ingress"
+  from_port         = 30000
+  to_port           = 32767
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"] 
+  security_group_id = aws_security_group.cluster.id
+}
+
 resource "aws_iam_role_policy_attachment" "node_group_worker" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
   role       = aws_iam_role.node_group.name
