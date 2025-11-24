@@ -92,23 +92,29 @@ jobs:
         with:
           version: 'v1.28.0'
 
-      - name: Show Terraform Outputs
+      - name: Terraform Outputs & Configure kubeconfig
         working-directory: ./terraform/eks
         run: |
           echo "==== Terraform Outputs ===="
           terraform output -raw cluster_name
+          terraform output -raw region
           echo "=========================="
 
-      - name: Capture Terraform Outputs
-        run: |
+          # Capture outputs into variables
           REGION=$(terraform output -raw region)
           CLUSTER_NAME=$(terraform output -raw cluster_name)
+          
+          echo "Region: $REGION"
+          echo "Cluster: $CLUSTER_NAME"
+
+          # Export to GitHub Actions environment (optional if needed in later steps)
           echo "REGION=$REGION" >> $GITHUB_ENV
           echo "CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
 
-      - name: Configure kubeconfig for EKS
-        run: |
-          aws eks update-kubeconfig --region $REGION --name $CLUSTER_NAME
+          # Configure kubectl
+          aws eks update-kubeconfig --region "$REGION" --name "$CLUSTER_NAME"
+          
+          # Verify cluster connection
           kubectl get nodes
 
       - name: Apply Kubernetes manifests
