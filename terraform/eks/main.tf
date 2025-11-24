@@ -189,7 +189,11 @@ resource "aws_eks_node_group" "main" {
     max_unavailable = 1
   }
 
-  # Use only EKS-supported AZs
+  launch_template {
+    id      = aws_launch_template.node_group.id
+    version = "$Latest"
+  }
+
   lifecycle {
     ignore_changes = [subnet_ids]
   }
