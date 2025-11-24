@@ -182,7 +182,6 @@ resource "aws_eks_node_group" "main" {
     min_size     = 1
   }
 
-  instance_types = ["t3.small"]
   capacity_type  = "ON_DEMAND"
 
   update_config {
