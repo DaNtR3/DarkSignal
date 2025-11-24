@@ -135,3 +135,6 @@ jobs:
           echo "✅ Deployment successful!"
           kubectl get pods -A
           kubectl get services -A
+
+      - name: Check aws-auth configmap
+        run: kubectl get configmap aws-auth -n kube-system -o yaml
