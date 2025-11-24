@@ -116,16 +116,6 @@ resource "aws_iam_role" "node_group" {
   })
 }
 
-# Allow inbound NodePort traffic to expose container services
-resource "aws_security_group_rule" "nodeport_range" {
-  type              = "ingress"
-  from_port         = 30000
-  to_port           = 32767
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"] 
-  security_group_id = aws_security_group.cluster.id
-}
-
 resource "aws_iam_role_policy_attachment" "node_group_worker" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
   role       = aws_iam_role.node_group.name
@@ -141,12 +131,50 @@ resource "aws_iam_role_policy_attachment" "node_group_registry" {
   role       = aws_iam_role.node_group.name
 }
 
+# Worker Node Security Group
+resource "aws_security_group" "node_group" {
+  name_prefix = "${var.cluster_name}-node-sg"
+  vpc_id      = data.aws_vpc.default.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.cluster_name}-node-sg"
+  }
+}
+
+# Allow NodePort range (30000–32767) on worker nodes
+resource "aws_security_group_rule" "nodeport_range" {
+  type              = "ingress"
+  from_port         = 30000
+  to_port           = 32767
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]   # restrict to your IP for safety if needed
+  security_group_id = aws_security_group.node_group.id
+}
+
+# Launch Template to attach SG to nodes
+resource "aws_launch_template" "node_group" {
+  name_prefix   = "${var.cluster_name}-lt"
+  instance_type = "t3.small"
+
+  network_interfaces {
+    security_groups = [aws_security_group.node_group.id]
+  }
+}
+
+
 # Minimal EKS Node Group - Single t3.small node
 resource "aws_eks_node_group" "main" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "${var.cluster_name}-node-group"
   node_role_arn   = aws_iam_role.node_group.arn
-  subnet_ids      = data.aws_subnets.default.ids
+  subnet_ids      = local.eks_subnet_ids
 
   scaling_config {
     desired_size = 1
@@ -154,7 +182,7 @@ resource "aws_eks_node_group" "main" {
     min_size     = 1
   }
 
-  instance_types = ["t3.small"]  # Cheaper than t3.medium
+  instance_types = ["t3.small"]
   capacity_type  = "ON_DEMAND"
 
   update_config {
