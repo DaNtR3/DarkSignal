@@ -100,6 +100,19 @@ resource "aws_eks_cluster" "main" {
   }
 }
 
+
+# This allows external traffic to reach Kubernetes NodePort services
+# NodePort services expose ports in the range 30000-32767 on each worker node
+resource "aws_security_group_rule" "node_port_access" {
+  type              = "ingress"
+  description       = "Allow NodePort services (30000-32767)"
+  from_port         = 30000
+  to_port           = 32767
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_eks_cluster.main.vpc_config[0].cluster_security_group_id
+}
+
 # Node Group IAM Role
 resource "aws_iam_role" "node_group" {
   name = "${var.cluster_name}-node-group-role"
