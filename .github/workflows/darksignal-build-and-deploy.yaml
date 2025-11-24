@@ -120,11 +120,28 @@ jobs:
       - name: Apply Kubernetes manifests
         run: |
           kubectl apply -f infra/namespaces/
-          kubectl apply -f infra/alertmanager/
           kubectl apply -f infra/prometheus/
+          kubectl apply -f infra/alertmanager/alertmanager-config.yaml
+          kubectl apply -f infra/alertmanager/alertmanager-config-template.yaml
+          kubectl apply -f infra/alertmanager/alertmanager-deployment.yaml
+          kubectl apply -f infra/alertmanager/alertmanager-service.yaml
           kubectl apply -f infra/grafana/
           kubectl apply -f infra/web_app/
           kubectl apply -f infra/script/
+      
+      - name: Deploy Alertmanager Secret
+        run: |
+          cat <<EOF | kubectl apply -f -
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: alertmanager-secret
+            namespace: alertmanager
+          type: Opaque
+          stringData:
+            AUTH_PASSWORD: "${{ secrets.ALERT_EMAIL_PASSWORD }}"
+            SLACK_API_URL: "${{ secrets.ALERT_SLACK_WEBHOOK }}"
+          EOF
 
       - name: Verify deployment
         run: |
