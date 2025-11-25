@@ -48,11 +48,16 @@ DarkSignal provides a comprehensive security simulation environment for:
 
 ### Tech Stack
 
+- **Frontend**: HTML5, CSS3, JavaScript
 - **Backend**: Python 3.11+ with Flask
+- **Database**: SQLite (lightweight, file-based)
 - **Container**: Docker
 - **Orchestration**: Kubernetes
+- **Infrastructure as Code**: Terraform
+- **Cloud Provider**: AWS (EKS, EC2, IAM, VPC)
 - **Monitoring**: Prometheus + Grafana + AlertManager
 - **Observability**: OpenTelemetry (OTEL)
+- **CI/CD**: GitHub Actions
 
 ---
 
@@ -346,7 +351,6 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 | `app.py` | Flask application entry point |
 | `dockerfile` | Docker image build configuration |
 | `requirements.txt` | Python dependencies (pip) |
-| `VERSION` | Application version |
 | `.env` | Environment variables (local development) |
 
 ### Environment Variables
@@ -1248,37 +1252,69 @@ Automated continuous integration and deployment using GitHub Actions.
 ### Workflow Overview
 
 **Trigger Events:**
-- Push to `main` branch with changes in `src/`, `dockerfile`, or `requirements.txt`
-- Pull requests to `main` with the same paths
+- Push to `main` branch (all files)
+- Pull requests to `main` branch
 
 **Pipeline Steps:**
 
 1. **Checkout** → Clone repository
-2. **Build Docker Image** → Compile and tag image
-3. **Push to Registry** → Push to GitHub Container Registry (ghcr.io)
-4. **Configure Kubernetes** → Setup kubectl with kubeconfig
-5. **Update Manifests** → Replace image tags in deployment files
-6. **Apply Manifests** → Deploy to Kubernetes cluster
-7. **Verify Rollout** → Check deployment health
+2. **Build Web App Image** → Build and push Flask app to Docker Hub
+3. **Build Script Image** → Build and push metrics script to Docker Hub
+4. **Terraform Init** → Initialize Terraform with S3 backend
+5. **Terraform Plan & Apply** → Provision/update AWS EKS infrastructure
+6. **Configure kubectl** → Setup Kubernetes access
+7. **Deploy to Kubernetes** → Apply manifests to cluster
+8. **Verify Deployment** → Check rollout status
 
 ### Setup Instructions
 
-#### Step 1: Create Kubeconfig Secret
+#### Prerequisites
+
+Before running this workflow, ensure you have set up the following GitHub secrets:
+
+1. **Docker Hub Credentials**:
+   - `DOCKERHUB_USERNAME` - Your Docker Hub username
+   - `DOCKERHUB_TOKEN` - Docker Hub access token (not password)
+
+2. **AWS Credentials**:
+   - `AWS_ACCESS_KEY_ID` - From terraform/bootstrap outputs
+   - `AWS_SECRET_ACCESS_KEY` - From terraform/bootstrap outputs
+
+#### Step 1: Docker Hub Setup
+
+1. Create Docker Hub access token:
+   - Go to [Docker Hub Account Settings](https://hub.docker.com/settings/security)
+   - Click **New Access Token**
+   - Name it: `github-actions`
+   - Copy the token
+
+2. Add to GitHub:
+   - Go to: **Settings → Secrets and variables → Actions**
+   - Add `DOCKERHUB_USERNAME`: Your Docker Hub username
+   - Add `DOCKERHUB_TOKEN`: The access token
+
+#### Step 2: AWS Credentials Setup
+
+Run Terraform bootstrap first:
 
 ```bash
-# Encode your kubeconfig
-cat ~/.kube/config | base64 -w 0 > kubeconfig.b64
-cat kubeconfig.b64
+cd terraform/bootstrap
+terraform init
+terraform apply
+
+# Retrieve outputs
+terraform output github_actions_access_key_id
+terraform output github_actions_secret_access_key
 ```
 
-#### Step 2: Add GitHub Secret
-
-1. Go to: **Settings → Secrets and variables → Actions**
-2. Click **New repository secret**
-3. Name: `KUBE_CONFIG`
-4. Value: Paste the base64-encoded kubeconfig
+Then add to GitHub:
+- Go to: **Settings → Secrets and variables → Actions**
+- Add `AWS_ACCESS_KEY_ID`: From terraform output
+- Add `AWS_SECRET_ACCESS_KEY`: From terraform output
 
 #### Step 3: Trigger Pipeline
+
+Simply push to main branch:
 
 ```bash
 git add .
@@ -1287,9 +1323,11 @@ git push origin main
 ```
 
 The workflow will automatically:
-- Build Docker image
-- Push to `ghcr.io/DaNtR3/DarkSignal:<tag>`
-- Deploy to Kubernetes
+- Build Docker images for web app and scripts
+- Push to Docker Hub: `docker.io/dantr3/sre-project:<tag>`
+- Provision/update AWS EKS cluster via Terraform
+- Deploy Kubernetes manifests
+- Verify deployment health
 
 ### Monitor Pipeline
 
@@ -1297,34 +1335,195 @@ The workflow will automatically:
 - Click the workflow run
 - View logs for each step
 
-### Image Tags
+### Docker Hub Images
 
-Images are tagged with:
+**Web App Image**:
+- Registry: `docker.io`
+- Repository: `dantr3/sre-project`
+- Tags:
+  - `latest` (most recent push to main)
+  - `<short-sha>` (8-character commit SHA)
 
-- `main` (latest stable)
-- `main-<commit-sha>` (specific commit)
-- `semver` tags (if using VERSION file)
+**Script Image**:
+- Registry: `docker.io`
+- Repository: `dantr3/sre-scripts`
+- Tags:
+  - `latest` (most recent push to main)
+  - `<short-sha>` (8-character commit SHA)
+
+**Example**:
+```bash
+# Pull latest web app
+docker pull dantr3/sre-project:latest
+
+# Pull specific commit
+docker pull dantr3/sre-project:a1b2c3d4
+
+# Pull scripts
+docker pull dantr3/sre-scripts:latest
+```
 
 ### Troubleshooting
 
-**Pipeline Fails at Kubernetes Deployment:**
-- Verify `KUBE_CONFIG` secret is set
-- Check kubeconfig permissions
-- Ensure cluster is reachable
+**Pipeline Fails at Docker Login:**
+- Verify `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` are set correctly
+- Ensure Docker Hub token has read/write permissions
+- Check that token hasn't expired
 
-**Image Not Pushed:**
-- Verify GitHub token has package write permissions
-- Check Docker login step in logs
+**Terraform Apply Fails:**
+- Verify `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are set
+- Check AWS credentials have EKS and EC2 permissions
+- Review terraform logs in GitHub Actions output
 
-**Pods Not Rolling Out:**
-- Check pod logs: `kubectl logs <pod-name> -n app-namespace`
-- Verify image exists in registry
-- Check resource requests/limits
+**Image Not Pushed to Docker Hub:**
+- Check Docker Hub login step in GitHub Actions logs
+- Verify repository name: `dantr3/sre-project` and `dantr3/sre-scripts`
+- Ensure Docker Hub account has push permissions
+
+**Kubernetes Deployment Fails:**
+- Check if EKS cluster was created successfully by Terraform
+- Verify kubectl can access cluster: `aws eks update-kubeconfig --region us-east-1 --name sre-project-cluster`
+- Review pod logs: `kubectl logs -f <pod-name> -n app-namespace`
 
 ---
 
-## Configuration
+### sre-project-destroy-infra.yml - Infrastructure Destruction Workflow
 
+Safely destroys AWS infrastructure (EKS cluster and all resources) using Terraform.
+
+**⚠️ WARNING**: This workflow **permanently deletes** your AWS infrastructure. Use with extreme caution!
+
+#### Trigger
+
+- **Manual Trigger Only** (`workflow_dispatch`)
+- No automatic triggers on push/PR
+- Requires manual confirmation in GitHub Actions UI
+
+#### Workflow Steps
+
+1. **Checkout code** → Clone repository
+2. **Set up Terraform** → Install Terraform 1.14.0
+3. **Configure AWS Credentials** → Authenticate using GitHub secrets
+4. **Terraform Init** → Initialize with S3 backend
+   - Backend S3 bucket: `sre-project-s3-dantr3-bucket`
+   - State file: `sre-project/eks/terraform.tfstate`
+   - Lock table: `terraform-locks` (DynamoDB)
+5. **Terraform Destroy** → Remove all AWS infrastructure
+   - Uses `-auto-approve` flag (no confirmation prompt)
+   - Destroys EKS cluster, EC2 nodes, IAM roles, security groups, etc.
+
+#### Prerequisites
+
+Before running this workflow, ensure:
+- `AWS_ACCESS_KEY_ID` secret is set in GitHub
+- `AWS_SECRET_ACCESS_KEY` secret is set in GitHub
+- S3 backend bucket exists: `sre-project-s3-dantr3-bucket`
+- DynamoDB lock table exists: `terraform-locks`
+- AWS credentials have sufficient permissions to delete resources
+
+#### How to Trigger Destruction
+
+1. **Go to GitHub Actions**:
+   - Navigate to: **Actions → SRE Project - Destroy Infrastructure**
+
+2. **Click "Run workflow"**:
+   - Select **Branch**: `main`
+   - Click **Run workflow**
+
+3. **Monitor Execution**:
+   - Check logs for each step
+   - Terraform will output all resources being destroyed
+   - Workflow completes once all resources are removed
+
+4. **Verify Deletion**:
+   ```bash
+   # Check AWS resources are gone
+   aws eks list-clusters --region us-east-1
+   aws ec2 describe-instances --region us-east-1
+   ```
+
+#### What Gets Destroyed
+
+This workflow destroys:
+
+| Resource | Details |
+|----------|---------|
+| **EKS Cluster** | Control plane and all associated resources |
+| **EC2 Nodes** | Worker node instances (t3.small) |
+| **IAM Roles** | Cluster and node group IAM roles |
+| **Security Groups** | Cluster and node security groups |
+| **VPC Resources** | Subnets, route tables, etc. |
+| **Load Balancers** | Any ALB/NLB created by services |
+
+#### What Does NOT Get Destroyed
+
+- **S3 Backend Bucket** (preserved for state recovery)
+- **DynamoDB Lock Table** (preserved for state locking)
+- **GitHub Actions Secrets** (not managed by Terraform)
+- **Docker Images** in registry (manual cleanup required)
+
+#### Cost Implications
+
+Destroying infrastructure **stops all AWS charges** for:
+- EKS cluster hosting
+- EC2 compute instances
+- Data transfer
+- Load balancers
+
+S3 backend and DynamoDB may incur minimal ongoing costs.
+
+#### Recovery After Destruction
+
+If you accidentally destroy resources:
+
+1. **Check Terraform State**:
+   ```bash
+   cd terraform/eks
+   terraform show
+   ```
+
+2. **Recreate Infrastructure**:
+   ```bash
+   cd terraform/eks
+   terraform init
+   terraform plan
+   terraform apply
+   ```
+
+3. **Restore from Git**:
+   - Terraform state is stored in S3, not in Git
+   - Recreating with same configuration rebuilds identical infrastructure
+
+#### Safe Practices
+
+✅ **DO:**
+- Test destruction in non-production environment first
+- Backup important data before destruction
+- Notify team members before destroying shared infrastructure
+- Document reason for infrastructure destruction
+- Use meaningful commit messages
+
+❌ **DON'T:**
+- Trigger destroy workflow accidentally
+- Run destroy during business hours without notice
+- Destroy production infrastructure without approval
+- Forget to verify all data is safely backed up
+
+#### Manual Destruction Alternative
+
+If you prefer manual control:
+
+```bash
+cd terraform/eks
+
+# Review what will be destroyed
+terraform plan -destroy
+
+# Confirm and destroy
+terraform destroy
+
+# Enter 'yes' when prompted for confirmation
+```
 ---
 
 ## Contributing
