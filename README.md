@@ -102,161 +102,384 @@ Each attack feature includes:
 
 ## Screenshots & Demo
 
-Visual demonstrations of DarkSignal in action:
+Complete visual demonstration of DarkSignal meeting all mandatory technical requirements and bonus features.
 
-### Application Interface
+### Quick Navigation
 
-**Add your DarkSignal web application screenshots here:**
-
-```
-[TODO] DarkSignal Dashboard Home Page
-- User authentication interface
-- Attack simulation controls
-- Real-time status display
-```
-
-```
-[TODO] Login Page
-- Password strength validation
-- Session management
-- User registration flow
-```
-
-```
-[TODO] Password Checker (PWNED API)
-- Weak password detection
-- Breach database lookup
-- Security recommendations
-```
-
-### Monitoring & Observability
-
-**Add your monitoring stack screenshots here:**
-
-#### Prometheus
-
-```
-[TODO] Prometheus Targets Page
-- Application metrics scraping
-- Target status (UP/DOWN)
-- Scrape interval visualization
-```
-
-```
-[TODO] Prometheus Query Results
-- Flask request rate (requests/sec)
-- Error rate monitoring
-- Response time histograms
-```
-
-**Example PromQL Queries Visualized:**
-
-```
-# Request Rate
-rate(flask_http_request_duration_seconds_count[1m])
-
-# Error Rate
-rate(flask_http_exceptions_total[1m])
-
-# Application Uptime
-up{job="darksignal"}
-```
-
-#### Grafana
-
-```
-[TODO] Grafana Dashboard
-- Attack simulation metrics
-- Real-time threat detection
-- System resource utilization
-```
-
-```
-[TODO] Custom Alert Visualization
-- Alert status overview
-- Alert frequency trends
-- Top triggered alerts
-```
-
-#### AlertManager
-
-```
-[TODO] AlertManager Interface
-- Active alerts list
-- Alert grouping
-- Notification status
-```
-
-```
-[TODO] Alert Timeline
-- Alert firing history
-- Alert resolution tracking
-- Escalation paths
-```
-
-### Infrastructure Deployment
-
-**Add your Kubernetes deployment screenshots here:**
-
-```
-[TODO] kubectl Output
-- Deployed pods and services
-- Namespace overview
-- Resource utilization
-```
-
-```
-[TODO] Pod Logs
-- Application startup logs
-- Error traces
-- Performance metrics
-```
-
-### CI/CD Pipeline
-
-**Add your GitHub Actions screenshots here:**
-
-```
-[TODO] GitHub Actions Workflow
-- Build pipeline execution
-- Docker image push status
-- Kubernetes deployment logs
-```
-
-```
-[TODO] Pipeline Success
-- All jobs completed
-- Artifacts generated
-- Deployment verification
-```
-
-### How to Add Screenshots
-
-1. **Capture Screenshots**:
-   - Use your favorite screenshot tool (Windows: Snip & Sketch, macOS: Screenshot, Linux: gnome-screenshot)
-   - Focus on key areas showing active functionality
-
-2. **Add Images to Repository**:
-   ```bash
-   mkdir -p docs/screenshots
-   cp your-screenshot.png docs/screenshots/
-   git add docs/screenshots/
-   git commit -m "Add screenshots for [feature]"
-   ```
-
-3. **Link in README**:
-   Replace `[TODO]` sections with actual image links:
-   ```markdown
-   ![DarkSignal Dashboard](docs/screenshots/dashboard.png)
-   ```
-
-4. **Organize by Category**:
-   - `docs/screenshots/app/` - Application UI
-   - `docs/screenshots/monitoring/` - Prometheus, Grafana
-   - `docs/screenshots/infrastructure/` - Kubernetes, Terraform
-   - `docs/screenshots/cicd/` - GitHub Actions
+| Mandatory Requirements | Bonus Features |
+|---|---|
+| [1. Application & Metrics](#1-application--metrics-generation) | [7. AlertManager Notifications](#7-alertmanager-notifications) |
+| [2. Kubernetes Deployment](#2-kubernetes-deployment) | [8. Infrastructure as Code](#8-infrastructure-as-code) |
+| [3. Prometheus Scraping](#3-prometheus-scraping) | [9. CI/CD Pipeline](#9-cicd-pipeline) |
+| [4. Grafana Dashboards](#4-grafana-dashboards) |
+| [5. AlertManager Deployment](#5-alertmanager-alerts) |
+| [6. GitHub Documentation](#6-github-repository-documentation) |
 
 ---
+
+## 1. Application & Metrics Generation
+
+**Requirement**: Create an application that generates metrics or alerts.
+
+**Implementation Details**:
+- Flask-based Python web application with built-in metrics export
+- OpenTelemetry (OTEL) instrumentation for distributed tracing
+- Prometheus metrics endpoint (`/metrics`)
+- Real-time security event logging and alerting
+
+#### 1.1 Authentication
+
+![DarkSignal Dashboard](docs/screenshots/app/login_page.JPG)
+
+Users authenticate via SQLite-backed login system embedded in the Docker image.
+
+#### 1.2 Dashboard & Interface
+
+![DarkSignal Dashboard](docs/screenshots/app/home_page.png)
+
+Main application dashboard displaying available security features. Currently features the Have I Been Pwned (HIBP) password checker.
+
+#### 1.3 Feature Demonstration: Password Security Check
+
+**Testing with Weak Password** (compromised):
+
+![DarkSignal Dashboard](docs/screenshots/app/haveibeenpwned.png)
+
+Search interface for password vulnerability checking.
+
+![DarkSignal Dashboard](docs/screenshots/app/haveibeenpwned_breached.png)
+
+Results showing a password that appears in known breach databases.
+
+**Testing with Strong Password** (secure):
+
+![DarkSignal Dashboard](docs/screenshots/app/haveibeenpwned_healthy.png)
+
+Results showing a secure password with no known breaches.
+
+#### 1.4 Metrics Endpoint
+
+![DarkSignal Dashboard](docs/screenshots/app/metrics_endpoint.png)
+
+Custom Prometheus metrics exposed at `/metrics` endpoint. This is the scrape target for Prometheus to collect application telemetry.
+
+---
+
+## 2. Kubernetes Deployment
+
+**Requirement**: Deploy application using Kubernetes (EKS, AKS, Minikube, k3d, etc.).
+
+**Implementation Details**:
+- Production-grade AWS EKS cluster via Infrastructure as Code (Terraform)
+- Modular deployment with isolated namespaces
+- Support for local testing with Minikube/k3d
+- Complete manifest-based configuration
+
+#### 2.1 Cluster Overview
+
+![K8s Dashboard](docs/screenshots/k8s/k8s-cluster-pods.JPG)
+
+Terminal view showing all deployed pods across namespaces.
+
+![K8s Dashboard](docs/screenshots/k8s/k8s-cluster-pods-2.JPG)
+
+AWS console UI displaying pod deployments and health status.
+
+#### 2.2 Network Configuration
+
+![K8s Dashboard](docs/screenshots/k8s/k8s-cluster-networking.JPG)
+
+VPC and network setup for inter-pod communication and external access.
+
+#### 2.3 Node Infrastructure
+
+![K8s Dashboard](docs/screenshots/k8s/k8s-node-group.JPG)
+
+Node group configuration showing compute resources allocation.
+
+![K8s Dashboard](docs/screenshots/k8s/k8s-node.JPG)
+
+Active nodes running in the node group.
+
+![K8s Dashboard](docs/screenshots/k8s/k8s-node-dashboard.JPG)
+
+Node metrics and performance statistics.
+
+#### 2.4 EC2 Infrastructure
+
+![K8s Dashboard](docs/screenshots/k8s/k8s-ec2.JPG)
+
+Underlying EC2 instances powering the Kubernetes cluster.
+
+---
+
+## 3. Prometheus Scraping
+
+**Requirement**: Deploy Prometheus and configure it to scrape metrics from the application.
+
+**Implementation Details**:
+- Prometheus deployment in Kubernetes cluster
+- Configured scrape jobs targeting application metrics endpoint
+- OpenTelemetry metrics export integration
+- Custom alert rules for security events
+
+#### 3.1 Scrape Targets
+
+![prometheus Dashboard](docs/screenshots/prometheus/prometheus-target-health.png)
+
+Prometheus targets dashboard showing all configured scrape endpoints and their health status.
+
+#### 3.2 Metrics Collection
+
+![prometheus Dashboard](docs/screenshots/prometheus/prometheus-scrapping.png)
+
+Evidence of successful metric scraping from the DarkSignal application.
+
+#### 3.3 Alert Rules
+
+![prometheus Dashboard](docs/screenshots/prometheus/prometheus-alert-rule.png)
+
+Configured alert rules with PromQL queries for triggering notifications on security events.
+
+---
+
+## 4. Grafana Dashboards
+
+**Requirement**: Deploy Grafana and visualize metrics from Prometheus using dashboards.
+
+**Implementation Details**:
+- Grafana deployment with Prometheus datasource
+- Custom dashboards for security metrics visualization
+- Real-time metric updates and trending
+
+#### 4.1 Datasource Configuration
+
+![grafana Dashboard](docs/screenshots/grafana/grafana-data-source.png)
+
+Prometheus datasource successfully configured in Grafana.
+
+![grafana Dashboard](docs/screenshots/grafana/grafana-scrapping.png)
+
+Grafana validating data collection from Prometheus.
+
+#### 4.2 Custom Dashboard
+
+![grafana Dashboard](docs/screenshots/grafana/grafana-dashboard.png)
+
+Custom dashboard visualizing password security metrics and application health.
+
+#### 4.3 Dashboard Configuration
+
+**File**: `haveibeenpwned-dashboard.json`
+
+The Have I Been Pwned dashboard is configured as a Grafana JSON model for easy import and deployment.
+
+**Dashboard Metadata**:
+- **Title**: Have I Been Pwned - Password Security Metrics
+- **UID**: haveibeenpwned-metrics
+- **Theme**: Dark mode
+- **Time Range**: Last 1 hour (configurable)
+- **Schema Version**: 38 (Grafana 10.0+)
+- **Tags**: security, passwords, haveibeenpwned, metrics
+
+**Datasource Configuration**:
+- Uses template variable `${DS_PROMETHEUS}` for dynamic Prometheus datasource selection
+- Allows the dashboard to be imported across different Grafana instances without hardcoding datasource UIDs
+- Auto-discovers available Prometheus datasources during import
+
+**Dashboard Panels**:
+
+1. **Compromised Passwords** (Stat Panel)
+   - **Position**: Top-left (0, 0)
+   - **Size**: 12 columns × 8 rows
+   - **Color Scheme**: Red (thresholds)
+   - **PromQL Query**: 
+     ```promql
+     haveibeenpwned_total{result=~"You've been Pwned.*"}
+     ```
+   - **Display**: Shows count of passwords found in breach databases
+   - **Calculation**: Last non-null value (real-time count)
+
+2. **Safe Passwords** (Stat Panel)
+   - **Position**: Top-right (12, 0)
+   - **Size**: 12 columns × 8 rows
+   - **Color Scheme**: Green (thresholds)
+   - **PromQL Query**:
+     ```promql
+     haveibeenpwned_total{result=~"All clear.*"}
+     ```
+   - **Display**: Shows count of secure passwords
+   - **Calculation**: Last non-null value (real-time count)
+
+3. **Password Status Distribution** (Pie Chart)
+   - **Position**: Full-width bottom (0, 8)
+   - **Size**: 24 columns × 8 rows
+   - **PromQL Query**:
+     ```promql
+     haveibeenpwned_total
+     ```
+   - **Display**: Pie chart showing ratio of compromised vs. safe passwords
+   - **Legend**: Shows by result label with values
+   - **Visualization**: Proportional representation of password security status
+
+**Key Features**:
+
+- **Portable**: Template variable approach works across any Grafana installation
+- **Real-time Updates**: Metrics refresh automatically based on Prometheus scrape interval
+- **Professional Styling**: Dark theme with color-coded visual indicators
+- **Security-focused**: Clear visual distinction between compromised (red) and safe (green) states
+- **Production-ready**: Follows Grafana best practices and JSON schema standards
+
+**Deployment**:
+
+To import this dashboard:
+
+1. Copy `haveibeenpwned-dashboard.json` to your Grafana instance
+2. Navigate to **Dashboards → Import**
+3. Upload the JSON file
+4. Select your Prometheus datasource when prompted
+5. Click **Import**
+
+The dashboard will automatically populate with metrics from your Prometheus instance.
+
+---
+
+## 5. AlertManager Deployment
+
+**Requirement**: Deploy AlertManager for alert routing and notification management.
+
+**Implementation Details**:
+- AlertManager deployment in Kubernetes cluster
+- Integration with Prometheus alert evaluation
+- Multi-channel notification support (email, Slack)
+- Alert grouping and deduplication
+
+#### 5.1 AlertManager Status
+
+![alertmanager Dashboard](docs/screenshots/alertmanager/alertmanager-status.JPG)
+
+AlertManager successfully deployed and operational in the cluster.
+
+---
+
+## 6. GitHub Repository Documentation
+
+**Requirement**: Comprehensive GitHub repository with professional documentation.
+
+**Implementation Details**:
+- Well-structured README with complete architecture documentation
+- CONTRIBUTING.md with development guidelines and standards
+- LICENSE file with security and legal disclaimers
+- Organized folder structure following best practices
+- Complete screenshot evidence and deployment guides
+
+#### 6.1 Repository Structure
+
+![github-repo Dashboard](docs/screenshots/github/readme.JPG)
+
+GitHub repository showing professional organization and comprehensive documentation.
+
+---
+
+## 7. AlertManager Notifications
+
+**Bonus Feature**: End-to-end alert notification system with Slack and Email integration.
+
+**Scenario**: Simulating application downtime and verifying alert delivery through multiple channels.
+
+#### 7.1 Triggering the Alert
+
+**Initial State**: Application running with 1 replica.
+
+![notifications Dashboard](docs/screenshots/cloudshell/cloudshell-zero-replicas.JPG)
+
+Scaling down the application to 0 replicas to simulate downtime.
+
+**Detection**: Prometheus detects connection failure.
+
+![notifications Dashboard](docs/screenshots/prometheus/prometheus-status-down.png)
+
+Prometheus target status shows application is DOWN.
+
+#### 7.2 Alert Escalation
+
+**Queued**: Alert condition met but within grace period.
+
+![notifications Dashboard](docs/screenshots/prometheus/prometheus-pending-alert.png)
+
+Alert transitioning from PENDING to FIRING state.
+
+**Fired**: Alert threshold exceeded, firing to AlertManager.
+
+![notifications Dashboard](docs/screenshots/prometheus/prometheus-firing-alert.png)
+
+Alert actively firing in Prometheus.
+
+![notifications Dashboard](docs/screenshots/alertmanager/alertmanager-alert-received.JPG)
+
+AlertManager receiving the alert and preparing notifications.
+
+#### 7.3 Notifications Delivered
+
+**Slack Alert**:
+
+![notifications Dashboard](docs/screenshots/alertmanager/alertmanager-firing-alert-slack.JPG)
+
+Real-time Slack notification alerting on-call engineer of application outage.
+
+**Email Alert**:
+
+![notifications Dashboard](docs/screenshots/alertmanager/alertmanager-firing-alert-email.png)
+
+Email notification with detailed alert context and severity level.
+
+#### 7.4 Recovery & Resolution
+
+**Restoring Service**: Scaling application back to 1 replica.
+
+![notifications Dashboard](docs/screenshots/cloudshell/cloudshell-zero-replicas_fixed.JPG)
+
+Scaling up the application to restore service.
+
+**Resolution Notifications**: Once service is restored, resolved notifications are sent.
+
+**Slack Resolution**:
+
+![notifications Dashboard](docs/screenshots/alertmanager/alertmanager-resolved-slack.JPG)
+
+Slack notification confirming service recovery.
+
+**Email Resolution**:
+
+![notifications Dashboard](docs/screenshots/alertmanager/alertmanager-resolved-email.png)
+
+Email notification indicating alert has been resolved.
+
+
+## Project Completion Checklist
+
+### Mandatory Requirements (6/6)
+- [ ] **Requirement 1**: Application generates metrics/alerts ✅
+- [ ] **Requirement 2**: Kubernetes deployment (EKS/k3d/Minikube) ✅
+- [ ] **Requirement 3**: Prometheus scraping configured ✅
+- [ ] **Requirement 4**: Grafana dashboards connected ✅
+- [ ] **Requirement 5**: AlertManager deployed ✅
+- [ ] **Requirement 6**: GitHub documentation complete ✅
+
+### Bonus Features
+- [ ] AlertManager notifications (Slack/Email) ✅
+- [ ] Infrastructure as Code (Terraform) ✅
+- [ ] CI/CD pipeline (GitHub Actions) ✅
+
+### Documentation Completeness
+- [ ] README.md (well-structured, clear)
+- [ ] CONTRIBUTING.md (guidelines provided)
+- [ ] LICENSE (with security disclaimer)
+- [ ] Code (organized and commented)
+- [ ] Screenshots (evidence captured)
+
+---
+
 
 ## Architecture
 
