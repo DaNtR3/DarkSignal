@@ -19,3 +19,59 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+## SECURITY DISCLAIMER
+
+DarkSignal is a security simulation platform designed for **authorized testing and educational purposes only**.
+
+### Important Warnings
+
+1. **Authorization Required**: 
+   - Only use DarkSignal on systems you own or have explicit written permission to test
+   - Unauthorized access to computer systems is illegal
+
+2. **Educational Use**:
+   - This tool is intended for security professionals, researchers, and authorized penetration testers
+   - Misuse of this tool for malicious purposes is prohibited
+
+3. **No Warranty**:
+   - The authors and contributors are NOT responsible for any damage, data loss, or legal consequences
+   - Use at your own risk in a controlled, authorized environment
+
+4. **Liability**:
+   - Users assume full responsibility for compliance with all applicable laws and regulations
+   - The authors cannot be held liable for unauthorized use or consequences of misuse
+
+5. **Responsible Disclosure**:
+   - If you discover security vulnerabilities, report them responsibly
+   - See SECURITY.md for vulnerability disclosure procedures
+
+### Compliance
+
+Users must comply with:
+- Computer Fraud and Abuse Act (CFAA) and similar legislation
+- Organization's security policies
+- Data protection regulations (GDPR, CCPA, etc.)
+- All applicable local, state, and federal laws
+
+### Proper Use Cases
+
+✅ **Authorized Uses**:
+- Authorized penetration testing
+- Internal security assessments
+- Security research with permission
+- Educational demonstrations in controlled environments
+- Red team exercises with explicit authorization
+
+❌ **Prohibited Uses**:
+- Unauthorized access to systems
+- Malicious attack simulation
+- Testing without written permission
+- Violating computer fraud laws
+- Unauthorized data access or exfiltration
+
+---
+
+By using DarkSignal, you acknowledge and agree to this security disclaimer and accept full responsibility for your use of this tool.

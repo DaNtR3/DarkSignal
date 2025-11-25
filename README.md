@@ -1541,6 +1541,18 @@ terraform destroy
 - Update documentation for API changes
 - Ensure CI/CD pipeline passes before merging
 
+**For comprehensive contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md)**
+
+This includes:
+- Complete development setup instructions
+- Branch naming conventions and commit message standards
+- Code style guides for Python, JavaScript, CSS, HTML, and Terraform
+- Testing requirements and coverage thresholds
+- Pull request process with templates
+- Documentation standards
+- Issue reporting guidelines
+- Security disclosure procedures
+
 ---
 
 ## License
